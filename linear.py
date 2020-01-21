@@ -4,8 +4,9 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import *
 from tensorflow.keras.losses import *
 from tensorflow.keras.metrics import *
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import *
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.utils import plot_model
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +14,7 @@ from PIL import Image
 
 DATA_PATH = "./cifar-10-batches-py/"
 data_augmentation = False
+modelName = "linear"
 
 def unpickle(file):
     with open(file, 'rb') as fo:
@@ -37,58 +39,8 @@ def show_first_samples(x_train, y_train, labels_name):
 def create_model():
     model = Sequential()
 
-    model.add(Conv2D(
-        filters = 64,
-        kernel_size = (3,3),
-        data_format = "channels_first",
-        padding = "same",
-        input_shape = (3, 32, 32)
-        ))
+    model.add(Dense(3072, input_shape=(3072,)))
     model.add(Activation('relu'))
-
-    model.add(Conv2D(
-        filters = 64,
-        kernel_size = (3,3),
-        data_format = "channels_first",
-        padding = "same",
-        input_shape = (3, 32, 32)
-        ))
-    model.add(Activation('relu'))
-
-    model.add(MaxPooling2D(pool_size = (2,2), data_format = "channels_first", padding = "same"))
-    model.add(Dropout(0.25))
-
-    model.add(Conv2D(filters = 128,
-        kernel_size = (3,3),
-        data_format = "channels_first",
-        padding = "same",
-    ))
-    model.add(Activation('relu'))
-
-    model.add(Conv2D(
-        filters = 128,
-        kernel_size = (3,3),
-        data_format = "channels_first",
-        padding = "same",
-    ))
-    
-
-    model.add(Conv2D(
-        filters = 128,
-        kernel_size = (3,3),
-        data_format = "channels_first",
-        padding = "same",
-    ))
-    model.add(Activation('relu'))
-
-    model.add(MaxPooling2D(pool_size = (2,2), data_format = "channels_first", padding = "same"))
-    model.add(Dropout(0.25))
-
-    model.add(Flatten())
-
-    model.add(Dense(512))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
 
     model.add(Dense(10))
     model.add(Activation('softmax'))
@@ -122,15 +74,15 @@ if __name__ == "__main__":
     x_train = x_train / 255.0
     x_val = x_val / 255.0
 
-    x_train = x_train.reshape(-1, 3, 32, 32)
-    x_val = x_val.reshape(-1, 3, 32, 32)
-
     y_train = np.array(y_train)
     y_val = np.array(y_val)
 
     model = create_model()
 
     #show_first_samples(x_train, y_train, labels_name)
+
+    print(model.summary())
+    plot_model(model, f"{modelName}_log/{modelName}.png")
 
     if data_augmentation:
         aug = ImageDataGenerator(width_shift_range = 0.2, height_shift_range = 0.2, horizontal_flip = True)
@@ -140,12 +92,18 @@ if __name__ == "__main__":
                                  steps_per_epoch=50000/128, 
                                  epochs=30, 
                                  validation_data=(x_val, y_val),
-                                 callbacks=[EarlyStopping(monitor="val_accuracy", patience=2)])
+                                 callbacks=[
+                                    EarlyStopping(monitor="val_accuracy", patience=2),
+                                    TensorBoard(log_dir=f"{modelName}_log", histogram_freq=1)
+                                    ])
     else:
         history = model.fit(x_train, y_train, validation_data=(x_val, y_val),
                 epochs=30,
                 batch_size=128,
-                callbacks=[EarlyStopping(monitor="val_accuracy", patience=2)])
+                callbacks=[
+                    EarlyStopping(monitor="val_accuracy", patience=2),
+                    TensorBoard(log_dir=f"{modelName}_log", histogram_freq=1)
+                    ])
     
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
@@ -153,7 +111,7 @@ if __name__ == "__main__":
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.savefig('./linear_accuracy.jpg')
+    plt.savefig(f'./{modelName}_log/{modelName}_accuracy.png')
     plt.show()
 
     plt.plot(history.history['loss'])
@@ -162,5 +120,5 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.savefig('./linear_loss.jpg')
+    plt.savefig(f'./{modelName}_log/{modelName}_loss.png')
     plt.show()

@@ -4,8 +4,9 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import *
 from tensorflow.keras.losses import *
 from tensorflow.keras.metrics import *
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import *
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.utils import plot_model
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +14,7 @@ from PIL import Image
 
 DATA_PATH = "./cifar-10-batches-py/"
 data_augmentation = False
+modelName = "vggNet"
 
 def unpickle(file):
     with open(file, 'rb') as fo:
@@ -130,6 +132,9 @@ if __name__ == "__main__":
 
     model = create_model()
 
+    print(model.summary())
+    plot_model(model, f"{modelName}_log/{modelName}.png")
+
     #show_first_samples(x_train, y_train, labels_name)
 
     if data_augmentation:
@@ -140,12 +145,18 @@ if __name__ == "__main__":
                                  steps_per_epoch=50000/128, 
                                  epochs=30, 
                                  validation_data=(x_val, y_val),
-                                 callbacks=[EarlyStopping(monitor="val_accuracy", patience=2)])
+                                 callbacks=[
+                                    EarlyStopping(monitor="val_accuracy", patience=2),
+                                    TensorBoard(log_dir=f"{modelName}_log", histogram_freq=1)
+                                    ])
     else:
         history = model.fit(x_train, y_train, validation_data=(x_val, y_val),
                 epochs=30,
                 batch_size=128,
-                callbacks=[EarlyStopping(monitor="val_accuracy", patience=2)])
+                callbacks=[
+                    EarlyStopping(monitor="val_accuracy", patience=2),
+                    TensorBoard(log_dir=f"{modelName}_log", histogram_freq=1)
+                    ])
     
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
@@ -153,7 +164,7 @@ if __name__ == "__main__":
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.savefig('./vggNet_accuracy.jpg')
+    plt.savefig(f'./{modelName}_log/{modelName}_accuracy.png')
     plt.show()
 
     plt.plot(history.history['loss'])
@@ -162,5 +173,5 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.savefig('./vggNet_loss.jpg')
+    plt.savefig(f'./{modelName}_log/{modelName}_loss.png')
     plt.show()
