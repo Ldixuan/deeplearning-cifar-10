@@ -14,7 +14,7 @@ from PIL import Image
 
 DATA_PATH = "./cifar-10-batches-py/"
 data_augmentation = False
-modelName = "convNet"
+modelName = "multiCouches"
 
 def unpickle(file):
     with open(file, 'rb') as fo:
@@ -36,33 +36,13 @@ def show_first_samples(x_train, y_train, labels_name):
         print(labels_name[y_train[i]])
         plt.show()
 
-def create_model():
+def create_model(depth: int = 4):
     model = Sequential()
+    model.add(Input((3072,)))
 
-    model.add(Conv2D(
-        filters = 64,
-        kernel_size = (3,3),
-        data_format = "channels_first",
-        padding = "same",
-        input_shape = (3, 32, 32)
-        ))
-    model.add(Activation('relu'))
-
-    model.add(MaxPooling2D(pool_size = (2,2), data_format = "channels_first", padding = "same"))
-    model.add(Dropout(0.25))
-
-    model.add(Conv2D(
-        filters = 128,
-        kernel_size = (3,3),
-        data_format = "channels_first",
-        padding = "same",
-        ))
-    model.add(Activation('relu'))
-
-    model.add(MaxPooling2D(pool_size = (2,2), data_format = "channels_first", padding = "same"))
-    model.add(Dropout(0.25))
-
-    model.add(Flatten())
+    for i in range(depth):
+        model.add(Dense(3072))
+        model.add(Activation('relu'))
 
     model.add(Dense(10))
     model.add(Activation('softmax'))
@@ -96,18 +76,15 @@ if __name__ == "__main__":
     x_train = x_train / 255.0
     x_val = x_val / 255.0
 
-    x_train = x_train.reshape(-1, 3, 32, 32)
-    x_val = x_val.reshape(-1, 3, 32, 32)
-
     y_train = np.array(y_train)
     y_val = np.array(y_val)
 
     model = create_model()
 
+    #show_first_samples(x_train, y_train, labels_name)
+
     print(model.summary())
     plot_model(model, f"{modelName}_log/{modelName}.png")
-
-    #show_first_samples(x_train, y_train, labels_name)
 
     if data_augmentation:
         aug = ImageDataGenerator(width_shift_range = 0.2, height_shift_range = 0.2, horizontal_flip = True)

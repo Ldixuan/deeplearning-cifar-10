@@ -1,10 +1,13 @@
 import pickle
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import *
+from tensorflow.keras.models import *
+from tensorflow.keras.activations import *
 from tensorflow.keras.optimizers import *
 from tensorflow.keras.losses import *
 from tensorflow.keras.metrics import *
 from tensorflow.keras.callbacks import *
+from tensorflow.keras.regularizers import L1L2
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import plot_model
 
@@ -36,24 +39,23 @@ def show_first_samples(x_train, y_train, labels_name):
         print(labels_name[y_train[i]])
         plt.show()
 
-def create_model(depth: int = 16, use_skip_connections: bool = True):
-    input_layer = Input((3072))
-    flatten_layer_output = Flatten(name="flatten")(input_layer)
+def create_model(depth: int = 4, use_skip_connections: bool = True):
+    input_layer = Input((3072,))
 
     penultimate_output = None
-    last_output = flatten_layer_output
+    last_output = input_layer
 
     for i in range(depth):
         if penultimate_output is not None and use_skip_connections:
             add_output = Add(name=f"Add_{i}")([last_output, penultimate_output])
             penultimate_output = add_output
-            last_output = Dense(784, activation=linear, name=f"Dense_{i}", kernel_regularizer=L1L2(l2=0.001 / depth))(
+            last_output = Dense(3072, activation=linear, name=f"Dense_{i}", kernel_regularizer=L1L2(l2=0.001 / depth))(
                 add_output)
             # last_output = BatchNormalization()(last_output)
             last_output = Activation(activation=relu, name=f"Activation_{i}")(last_output)
         else:
             penultimate_output = last_output
-            last_output = Dense(784, activation=linear, name=f"Dense_{i}", kernel_regularizer=L1L2(l2=0.001 / depth))(
+            last_output = Dense(3072, activation=linear, name=f"Dense_{i}", kernel_regularizer=L1L2(l2=0.001 / depth))(
                 last_output)
             # last_output = BatchNormalization()(last_output)
             last_output = Activation(activation=relu, name=f"Activation_{i}")(last_output)
@@ -67,7 +69,7 @@ def create_model(depth: int = 16, use_skip_connections: bool = True):
 
     model.compile(loss=sparse_categorical_crossentropy,
                   optimizer=Adam(),
-                  metrics=[sparse_categorical_accuracy])
+                  metrics=['accuracy'])
     return model
 
 def load_data():
