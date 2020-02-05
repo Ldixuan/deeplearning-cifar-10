@@ -49,7 +49,7 @@ def create_model():
     model.add(Activation('relu'))
 
     model.add(MaxPooling2D(pool_size = (2,2), data_format = "channels_first", padding = "same"))
-    model.add(Dropout(0.25)) #la courche de dropout
+    model.add(Dropout(0.25)) #la courche de dropout, Dropout: A Simple Way to Prevent Neural Networks from Overfitting 
 
     model.add(Conv2D(
         filters = 32,
