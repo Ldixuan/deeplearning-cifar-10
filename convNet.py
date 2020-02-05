@@ -39,8 +39,8 @@ def show_first_samples(x_train, y_train, labels_name):
 def create_model():
     model = Sequential()
 
-    model.add(Conv2D(
-        filters = 32,
+    model.add(Conv2D( #c'est la courche de cnn
+        filters = 32, #la nombre de kernel
         kernel_size = (3,3),
         data_format = "channels_first",
         padding = "same",
@@ -49,7 +49,7 @@ def create_model():
     model.add(Activation('relu'))
 
     model.add(MaxPooling2D(pool_size = (2,2), data_format = "channels_first", padding = "same"))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.25)) #la courche de dropout
 
     model.add(Conv2D(
         filters = 32,
