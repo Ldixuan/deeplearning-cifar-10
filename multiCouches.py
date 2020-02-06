@@ -43,6 +43,7 @@ def create_model(depth: int = 4):
     for i in range(depth):
         model.add(Dense(3072))
         model.add(Activation('relu'))
+        model.add(Dropout(0.25))
 
     model.add(Dense(10))
     model.add(Activation('softmax'))
