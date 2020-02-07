@@ -7,6 +7,8 @@ from tensorflow.keras.metrics import *
 from tensorflow.keras.callbacks import *
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import plot_model
+from tensorflow.keras.activations import *
+from tensorflow.keras.regularizers import L1L2
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,7 +43,7 @@ def create_model(depth: int = 4):
     model.add(Input((3072,)))
 
     for i in range(depth):
-        model.add(Dense(3072))
+        model.add(Dense(3072, activation=linear))
         model.add(Activation('relu'))
         model.add(Dropout(0.25))
 

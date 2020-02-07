@@ -48,22 +48,25 @@ def create_model(depth: int = 4, use_skip_connections: bool = True):
     for i in range(depth):
         if penultimate_output is not None and use_skip_connections:
             add_output = Add(name=f"Add_{i}")([last_output, penultimate_output])
+            add_output = Dropout(0.25)(add_output)
             penultimate_output = add_output
-            last_output = Dense(3072, activation=linear, name=f"Dense_{i}", kernel_regularizer=L1L2(l2=0.001 / depth))(
+            last_output = Dense(3072, activation=linear, name=f"Dense_{i}")(
                 add_output)
             # last_output = BatchNormalization()(last_output)
             last_output = Activation(activation=relu, name=f"Activation_{i}")(last_output)
         else:
             penultimate_output = last_output
-            last_output = Dense(3072, activation=linear, name=f"Dense_{i}", kernel_regularizer=L1L2(l2=0.001 / depth))(
+            last_output = Dense(3072, activation=linear, name=f"Dense_{i}")(
                 last_output)
             # last_output = BatchNormalization()(last_output)
             last_output = Activation(activation=relu, name=f"Activation_{i}")(last_output)
+            
 
     if use_skip_connections:
         last_output = Add(name=f"Add_output")([last_output, penultimate_output])
+        last_output = Dropout(0.25)(last_output)
 
-    output_tensor = Dense(10, activation=softmax, name=f"Dense_output", kernel_regularizer=L1L2(l2=0.001 / depth))(
+    output_tensor = Dense(10, activation=softmax, name=f"Dense_output")(
         last_output)
     model = Model(input_layer, output_tensor)
 
