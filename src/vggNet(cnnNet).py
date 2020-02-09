@@ -121,21 +121,20 @@ if __name__ == "__main__":
     data_info = unpickle(DATA_PATH + "batches.meta") #load the data infos
     labels_name = data_info[b'label_names']
 
-    x_train = x_train / 255.0
-    x_val = x_val / 255.0
-
     x_train = x_train.reshape(-1, 3, 32, 32)
     x_val = x_val.reshape(-1, 3, 32, 32)
 
     y_train = np.array(y_train)
     y_val = np.array(y_val)
+    
+    show_first_samples(x_train, y_train, labels_name)
 
     model = create_model()
 
     print(model.summary())
     plot_model(model, f"{modelName}_log/{modelName}.png")
 
-    #show_first_samples(x_train, y_train, labels_name)
+    
 
     if data_augmentation:
         aug = ImageDataGenerator(width_shift_range = 0.2, height_shift_range = 0.2, horizontal_flip = True)
